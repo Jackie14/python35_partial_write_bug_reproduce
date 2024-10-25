@@ -1,29 +1,37 @@
-This repo code is used to reproduce a bug of python3.5.
+## This repo code is used to reproduce a bug of python3.5.
 
 There is a bug in python3.5, which is already fixed from python3.6.
 In case python3.5 is a must, we need to reproduce that bug(to make sure of it) and patch to fix.
 
-Python3.5 bug:
-Issue: https://github.com/python/cpython/issues/70908
-Fix: https://github.com/python/cpython/commit/34eeed42901666fce099947f93dfdfc05411f286#diff-c00d56a0c132ee4bdf79f55a4b43643cf314df1fe122c07c539e120c7ec98b5e
+## Python3.5 bug info
+### Issue:
+https://github.com/python/cpython/issues/70908
+
+### Fix:
+https://github.com/python/cpython/commit/34eeed42901666fce099947f93dfdfc05411f286#diff-c00d56a0c132ee4bdf79f55a4b43643cf314df1fe122c07c539e120c7ec98b5e
 
 
-Steps to reproduce:
+## Steps to reproduce:
 
 0) In the diretory you want to start the server.py script, please prepare a file( >1MB) used for downloading.
-#dd if=/dev/zero of=1MBfile.txt bs=1M count=1
+
+        $ dd if=/dev/zero of=1MBfile.txt bs=1M count=1
 
 1) Start a HTTP server, by python3.5
-#python3.5  /.autodirect/swgwork/yongquanx/github/pythonbug/server.py 10.237.121.80
-Got server ip: 10.237.121.80
-Create HTTP server on:
-('10.237.121.80', 43079)
 
-2) Try to download a file (>1MB) from that HTTP server, from another host.
-You will noticed download failed in some cases.
-if you switch to use >=python3.6, you will not get that downloading failed
+        $ python3.5 ./server.py 10.237.121.80
+        Got server ip: 10.237.121.80
+        Create HTTP server on:
+        ('10.237.121.80', 43079)
 
-#sh client.sh curl 10.237.121.80 43079 1MBfile.txt
+2) Try to download a file (>1MB) from that HTTP server, on another host.
+You will get download failure in some cases.
+if you switch to use >=python3.6 to start the server.py, you will not get those download failure
+
+
+        $ sh client.sh curl 10.237.121.80 43079 1MBfile.txt
+        ...
+
         *   Trying 10.237.121.80...
         * TCP_NODELAY set
         * Connected to 10.237.121.80 (10.237.121.80) port 43079 (#0)
@@ -48,7 +56,10 @@ if you switch to use >=python3.6, you will not get that downloading failed
         Error!!! Error!!!
 
 
-#sh client.sh wget 10.237.121.80 43079 1MBfile.txt
+
+        $ sh client.sh wget 10.237.121.80 43079 1MBfile.txt
+        ...
+
         --2024-10-25 15:17:26--  http://10.237.121.80:43079/1MBfile.txt
         Connecting to 10.237.121.80:43079... connected.
         HTTP request sent, awaiting response... 200 OK

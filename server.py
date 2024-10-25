@@ -32,6 +32,7 @@ server_ip = sys.argv[1]
 print("Got server ip: {}".format(server_ip))
 print("Create HTTP server on:")
 create_http_server_thread()
+# If switch to use sub process to host http server, then the download failure issue can be avoided
 #create_http_server_process()
 for i in range(1000000000):
    os.system('date > /dev/null') 
