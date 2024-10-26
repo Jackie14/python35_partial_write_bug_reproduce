@@ -4,12 +4,18 @@ There is a bug in python3.5, which is already fixed from python3.6.
 In case python3.5 is a must, we need to reproduce that bug(to make sure of it) and patch to fix.
 
 ## Python3.5 bug info
-### Issue:
+#### Issue:
 https://github.com/python/cpython/issues/70908
 
-### Fix:
+#### Fix:
 https://github.com/python/cpython/commit/34eeed42901666fce099947f93dfdfc05411f286#diff-c00d56a0c132ee4bdf79f55a4b43643cf314df1fe122c07c539e120c7ec98b5e
 
+#### Analysis
+The root cause of that bug is using raw **socket.send** to send data, which may trigger partial write.
+
+**socket.send()** is a low-level method and basically just the C/syscall method send(3) / send(2). It can send less bytes than you requested, but returns the number of bytes sent.
+
+**socket.sendall** is a high-level Python-only method that sends the entire buffer you pass or throws an exception. It does that by calling socket.send until everything has been sent or an error occurs.
 
 ## Steps to reproduce:
 
@@ -75,4 +81,81 @@ if you switch to use >=python3.6 to start the server.py, you will not get those 
 
 
 
+## Add log in python3.5 shutil.py showing send error:
+        def copyfileobj(fsrc, fdst, length=16*1024):
+                """copy data from file-like object fsrc to file-like object fdst"""
+                while 1:
+                        buf = fsrc.read(length)
+                        if not buf:
+                                break
+                        sent = fdst.write(buf)
+                        print("sending:{}, sent:{}".format(len(buf), sent))
+                        if len(buf) != sent:
+                                print("Partial write happend here -------------------------")
 
+
+        10.237.121.60 - - [26/Oct/2024 11:13:53] "GET /1MBfile.txt HTTP/1.1" 200 -
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:10320
+        Partial write happend here -------------------------
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
+        sending:16384, sent:16384
